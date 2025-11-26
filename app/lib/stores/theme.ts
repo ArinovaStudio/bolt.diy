@@ -5,42 +5,42 @@ export type Theme = 'dark' | 'light';
 
 export const kTheme = 'bolt_theme';
 
-export function themeIsDark() {
-  return themeStore.get() === 'dark';
+/**
+ * Always return light theme
+ */
+function initStore(): Theme {
+  // Force light theme always
+  if (typeof document !== "undefined") {
+    document.documentElement.setAttribute("data-theme", "light");
+    localStorage.setItem(kTheme, "light");
+  }
+  return "light";
 }
-
-export const DEFAULT_THEME = 'light';
 
 export const themeStore = atom<Theme>(initStore());
 
-function initStore() {
-  if (!import.meta.env.SSR) {
-    const persistedTheme = localStorage.getItem(kTheme) as Theme | undefined;
-    const themeAttribute = document.querySelector('html')?.getAttribute('data-theme');
-
-    return persistedTheme ?? (themeAttribute as Theme) ?? DEFAULT_THEME;
-  }
-
-  return DEFAULT_THEME;
+export function themeIsDark() {
+  return false; // Always false because theme is always light
 }
 
+/**
+ * toggleTheme no longer toggles — it forces light theme
+ */
 export function toggleTheme() {
-  const currentTheme = themeStore.get();
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  const newTheme: Theme = "light";
 
-  // Update the theme store
+  // update store
   themeStore.set(newTheme);
 
-  // Update localStorage
+  // save for consistency
   localStorage.setItem(kTheme, newTheme);
 
-  // Update the HTML attribute
-  document.querySelector('html')?.setAttribute('data-theme', newTheme);
+  // update HTML <html data-theme="light">
+  document.documentElement.setAttribute("data-theme", newTheme);
 
-  // Update user profile if it exists
+  // update user profile if stored
   try {
     const userProfile = localStorage.getItem('bolt_user_profile');
-
     if (userProfile) {
       const profile = JSON.parse(userProfile);
       profile.theme = newTheme;
@@ -50,5 +50,5 @@ export function toggleTheme() {
     console.error('Error updating user profile theme:', error);
   }
 
-  logStore.logSystem(`Theme changed to ${newTheme} mode`);
+  logStore.logSystem(`Theme forced to ${newTheme} mode`);
 }

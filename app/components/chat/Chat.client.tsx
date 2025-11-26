@@ -191,6 +191,16 @@ export const ChatImpl = memo(
       }
     }, [model, provider, searchParams]);
 
+    useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const msg = params.get('msg');
+
+  if (msg) {
+    setInput(msg);
+  }
+}, []);
+
+
     const { enhancingPrompt, promptEnhanced, enhancePrompt, resetEnhancer } = usePromptEnhancer();
     const { parsedMessages, parseMessages } = useMessageParser();
 
