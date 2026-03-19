@@ -13,6 +13,11 @@ dotenv.config();
 
 export default defineConfig((config) => {
   return {
+    server: {
+      host: true,
+      allowedHosts: ['web-gen.bestofall.in'],
+    },
+
     define: {
       'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     },
