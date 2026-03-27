@@ -1,4 +1,6 @@
-import { json, type MetaFunction } from '@remix-run/cloudflare';
+import { json, type MetaFunction, type LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { useLoaderData } from '@remix-run/react';
+import { useEffect } from 'react';
 import { ClientOnly } from 'remix-utils/client-only';
 import { BaseChat } from '~/components/chat/BaseChat';
 import { Chat } from '~/components/chat/Chat.client';
@@ -9,15 +11,67 @@ export const meta: MetaFunction = () => {
   return [{ title: 'Arinova' }, { name: 'description', content: 'Talk with Bolt, an AI assistant from StackBlitz' }];
 };
 
-export const loader = () => json({});
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
+  const promptId = url.searchParams.get('promptId');
 
-/**
- * Landing page component for Bolt
- * Note: Settings functionality should ONLY be accessed through the sidebar menu.
- * Do not add settings button/panel to this landing page as it was intentionally removed
- * to keep the UI clean and consistent with the design system.
- */
+  let injectedPrompt = null;
+
+  if (promptId) {
+    const env = (context?.cloudflare?.env as any) || process.env;
+    
+    const mainAppUrl = env.MAIN_APP_URL || "https://lead-gen.bestofall.in";
+
+    if (mainAppUrl) {
+      try {
+        const response = await fetch(`${mainAppUrl}/api/external?promptId=${promptId}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          injectedPrompt = data.prompt;
+        } else {
+          console.error("Failed to fetch prompt. Status:", response.status);
+        }
+      } catch (err) {
+        console.error("Error fetching external prompt:", err);
+      }
+    } else {
+      console.warn("Missing MAIN_APP_URL or NEXTAUTH_SECRET in Bolt.diy environment variables.");
+    }
+  }
+
+  return json({ injectedPrompt });
+};
+
+
 export default function Index() {
+  const { injectedPrompt } = useLoaderData<typeof loader>();
+
+  useEffect(() => {
+    if (injectedPrompt) {
+      const timer = setTimeout(() => {
+        const textarea = document.querySelector('textarea');
+        
+        if (textarea) {
+          const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+            window.HTMLTextAreaElement.prototype,
+            'value'
+          )?.set;
+
+          if (nativeInputValueSetter) {
+            nativeInputValueSetter.call(textarea, injectedPrompt);
+          } else {
+            textarea.value = injectedPrompt;
+          }
+          
+          textarea.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [injectedPrompt]);
+
   return (
     <div className="flex flex-col h-full w-full bg-bolt-elements-background-depth-1">
       <BackgroundRays />
