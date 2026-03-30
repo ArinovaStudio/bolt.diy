@@ -273,14 +273,14 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
         formData.append("file", file);
 
        
-        const mainAppUrl = env.MAIN_APP_URL || "https://lead-gen.bestofall.in";
+        const mainAppUrl = "https://lead-gen.bestofall.in";
 
         const res = await fetch(`${mainAppUrl}/api/external/upload`, {
           method: "POST",
           body: formData,
         });
 
-        const data = await res.json();
+        const data:any  = await res.json();
         if (data.success) {
           setVpsUploadedUrls((prev) => [...prev, data.imageUrl]);
         } else {
@@ -293,22 +293,25 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
 
     const handleSendMessage = (event: React.UIEvent, messageInput?: string) => {
       if (sendMessage) {
-        let finalMessage = messageInput;
+        let finalMessage = messageInput || input; 
+        
         if (vpsUploadedUrls.length > 0) {
           const urls = vpsUploadedUrls.join(", ");
           const injection = `\n\n[SYSTEM NOTE: The user has uploaded custom images. You MUST use these exact URLs in your <img> tags: ${urls}]`;
           finalMessage = finalMessage ? finalMessage + injection : injection;
         }
         
-        sendMessage(event, messageInput);
+        sendMessage(event, finalMessage); 
+        
+        setVpsUploadedUrls([]); 
+        
         setSelectedElement?.(null);
 
         if (recognition) {
-          recognition.abort(); // Stop current recognition
-          setTranscript(''); // Clear transcript
+          recognition.abort(); 
+          setTranscript(''); 
           setIsListening(false);
 
-          // Clear the input by triggering handleInputChange with empty value
           if (handleInputChange) {
             const syntheticEvent = {
               target: { value: '' },
@@ -336,7 +339,9 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
             setImageDataList?.([...imageDataList, base64Image]);
           };
           reader.readAsDataURL(file);
-          uploadToVPS(file);
+          if (file.type.startsWith('image/')) {
+             uploadToVPS(file);
+          }
         }
       };
 
@@ -365,7 +370,9 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
               setImageDataList?.([...imageDataList, base64Image]);
             };
             reader.readAsDataURL(file);
-            uploadToVPS(file);
+            if (file.type.startsWith('image/')) {
+              uploadToVPS(file);
+            }
           }
 
           break;
