@@ -275,7 +275,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
        
         const mainAppUrl = env.MAIN_APP_URL || "https://lead-gen.bestofall.in";
 
-        const res = await fetch(`${mainAppUrl}/api/upload`, {
+        const res = await fetch(`${mainAppUrl}/api/external/upload`, {
           method: "POST",
           body: formData,
         });
