@@ -258,7 +258,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
             />
           )}
         </ClientOnly>
-        {/* <div className="flex justify-between items-center text-sm p-4 pt-2">
+        <div className="flex justify-between items-center text-sm p-4 pt-2">
           <div className="flex gap-1 items-center">
             <ColorSchemeDialog designScheme={props.designScheme} setDesignScheme={props.setDesignScheme} />
             <McpTools />
@@ -327,7 +327,7 @@ export const ChatBox: React.FC<ChatBoxProps> = (props) => {
           ) : null}
           <SupabaseConnection />
           <ExpoQrModal open={props.qrModalOpen} onClose={() => props.setQrModalOpen(false)} />
-        </div> */}
+        </div>
       </div>
     </div>
   );
